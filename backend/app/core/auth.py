@@ -30,10 +30,7 @@ def get_tenant_from_key(api_key: str):
 
 async def get_tenant(x_api_key: str = Header(None)):
     if not x_api_key:
-        tenant = get_tenant_from_key("default-tenant-key")
-        if tenant:
-            return tenant
-        raise HTTPException(status_code=401, detail="Missing X-API-Key header")
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
     tenant = get_tenant_from_key(x_api_key)
     if not tenant:
