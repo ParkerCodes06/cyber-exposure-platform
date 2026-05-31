@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { getUser, logout } from "../services/api";
 
 const NAV_ITEMS = [
   {
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
 
 export default function Header() {
   const location = useLocation();
+  const user = getUser();
 
   return (
     <header className="bg-gray-900 border-b border-gray-800">
@@ -28,25 +30,44 @@ export default function Header() {
             <h1 className="text-xl font-bold text-white">CyberLens</h1>
             <span className="text-gray-500 text-sm hidden sm:inline">Exposure Dashboard</span>
           </div>
-          <nav className="flex items-center gap-1">
-            {NAV_ITEMS.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-gray-800 text-white"
-                      : "text-gray-400 hover:text-white hover:bg-gray-800/50"
-                  }`}
+          <div className="flex items-center gap-3">
+            <nav className="flex items-center gap-1">
+              {NAV_ITEMS.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-gray-800 text-white"
+                        : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="hidden sm:inline">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+            {user && (
+              <div className="flex items-center gap-3 ml-2 pl-3 border-l border-gray-700">
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm text-white font-medium">{user.email}</p>
+                  <p className="text-xs text-gray-500">{user.role} &middot; {user.tenant_id}</p>
+                </div>
+                <button
+                  onClick={logout}
+                  className="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                  title="Sign out"
                 >
-                  {item.icon}
-                  <span className="hidden sm:inline">{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

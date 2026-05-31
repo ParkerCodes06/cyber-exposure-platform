@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from backend.app.db.database import get_connection
 from backend.app.core.cve_engine import check_vulnerabilities
 from backend.app.core.risk_engine import calculate_risk
-from backend.app.core.auth import get_tenant
+from backend.app.core.deps import get_current_user
 from backend.app.utils.logger import get_logger
 
 logger = get_logger("api.dashboard")
@@ -11,12 +11,12 @@ router = APIRouter()
 
 
 @router.get("/dashboard/summary")
-def dashboard_summary(tenant: dict = Depends(get_tenant)):
+def dashboard_summary(user: dict = Depends(get_current_user)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        tenant_id = tenant["name"]
+        tenant_id = user["tenant_id"]
 
         cursor.execute("SELECT * FROM assets WHERE tenant_id = ?", (tenant_id,))
         rows = cursor.fetchall()
@@ -58,12 +58,12 @@ def dashboard_summary(tenant: dict = Depends(get_tenant)):
 
 
 @router.get("/dashboard/assets")
-def dashboard_assets(tenant: dict = Depends(get_tenant)):
+def dashboard_assets(user: dict = Depends(get_current_user)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        tenant_id = tenant["name"]
+        tenant_id = user["tenant_id"]
 
         cursor.execute("SELECT * FROM assets WHERE tenant_id = ?", (tenant_id,))
         rows = cursor.fetchall()
@@ -92,12 +92,12 @@ def dashboard_assets(tenant: dict = Depends(get_tenant)):
 
 
 @router.get("/dashboard/top-risks")
-def dashboard_top_risks(tenant: dict = Depends(get_tenant)):
+def dashboard_top_risks(user: dict = Depends(get_current_user)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        tenant_id = tenant["name"]
+        tenant_id = user["tenant_id"]
 
         cursor.execute("SELECT * FROM assets WHERE tenant_id = ?", (tenant_id,))
         rows = cursor.fetchall()

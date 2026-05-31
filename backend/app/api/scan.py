@@ -8,7 +8,7 @@ from backend.app.core.risk_engine import calculate_risk
 from backend.app.core.attack_engine import build_attack_path
 from backend.app.core.report_engine import generate_report
 from backend.app.core.alert_engine import check_and_alert
-from backend.app.core.auth import get_tenant
+from backend.app.core.deps import get_current_user
 from backend.app.utils.logger import get_logger
 
 logger = get_logger("api.scan")
@@ -16,12 +16,12 @@ router = APIRouter()
 
 
 @router.get("/scan/{hostname}")
-def scan_host(hostname: str, tenant: dict = Depends(get_tenant)):
+def scan_host(hostname: str, user: dict = Depends(get_current_user)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        tenant_id = tenant["name"]
+        tenant_id = user["tenant_id"]
 
         cursor.execute("""
             SELECT * FROM assets WHERE hostname = ? AND tenant_id = ?
@@ -91,12 +91,12 @@ def scan_host(hostname: str, tenant: dict = Depends(get_tenant)):
 
 
 @router.get("/attack-path/{hostname}")
-def attack_path(hostname: str, tenant: dict = Depends(get_tenant)):
+def attack_path(hostname: str, user: dict = Depends(get_current_user)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        tenant_id = tenant["name"]
+        tenant_id = user["tenant_id"]
 
         cursor.execute("SELECT * FROM assets WHERE hostname = ? AND tenant_id = ?", (hostname, tenant_id))
         row = cursor.fetchone()

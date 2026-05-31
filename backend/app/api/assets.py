@@ -6,7 +6,8 @@ from backend.app.db.database import get_connection
 from backend.app.models.asset_model import AssetIngest
 from backend.app.core.cve_engine import check_vulnerabilities
 from backend.app.core.risk_engine import calculate_risk
-from backend.app.core.auth import get_tenant, get_tenant_optional
+from backend.app.core.auth import get_tenant_optional
+from backend.app.core.deps import get_current_user
 from backend.app.utils.logger import get_logger
 
 logger = get_logger("api.assets")
@@ -94,12 +95,12 @@ def ingest_asset(asset: AssetIngest, tenant: dict = Depends(get_tenant_optional)
 
 
 @router.get("/assets")
-def get_assets(tenant: dict = Depends(get_tenant)):
+def get_assets(user: dict = Depends(get_current_user)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        tenant_id = tenant["name"]
+        tenant_id = user["tenant_id"]
 
         cursor.execute("SELECT * FROM assets WHERE tenant_id = ?", (tenant_id,))
         rows = cursor.fetchall()

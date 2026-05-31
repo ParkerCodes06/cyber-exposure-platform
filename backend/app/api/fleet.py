@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from backend.app.db.database import get_connection
 from backend.app.core.cve_engine import check_vulnerabilities
 from backend.app.core.risk_engine import calculate_risk
-from backend.app.core.auth import get_tenant
+from backend.app.core.deps import get_current_user
 from backend.app.utils.logger import get_logger
 
 logger = get_logger("api.fleet")
@@ -11,12 +11,12 @@ router = APIRouter()
 
 
 @router.get("/fleet/summary")
-def fleet_summary(tenant: dict = Depends(get_tenant)):
+def fleet_summary(user: dict = Depends(get_current_user)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        tenant_id = tenant["name"]
+        tenant_id = user["tenant_id"]
 
         cursor.execute("SELECT * FROM assets WHERE tenant_id = ?", (tenant_id,))
         rows = cursor.fetchall()
@@ -68,12 +68,12 @@ def fleet_summary(tenant: dict = Depends(get_tenant)):
 
 
 @router.get("/fleet/assets")
-def fleet_assets(tenant: dict = Depends(get_tenant)):
+def fleet_assets(user: dict = Depends(get_current_user)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        tenant_id = tenant["name"]
+        tenant_id = user["tenant_id"]
 
         cursor.execute("SELECT * FROM assets WHERE tenant_id = ?", (tenant_id,))
         rows = cursor.fetchall()
@@ -107,12 +107,12 @@ def fleet_assets(tenant: dict = Depends(get_tenant)):
 
 
 @router.get("/fleet/risk-trends")
-def fleet_risk_trends(tenant: dict = Depends(get_tenant)):
+def fleet_risk_trends(user: dict = Depends(get_current_user)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        tenant_id = tenant["name"]
+        tenant_id = user["tenant_id"]
 
         cursor.execute("""
             SELECT hostname, timestamp, risk_score, risk_level
