@@ -21,5 +21,9 @@ export const getHealth = () => api.get("/health");
 export const getFleetSummary = () => api.get("/fleet/summary");
 export const getFleetAssets = () => api.get("/fleet/assets");
 export const getFleetRiskTrends = () => api.get("/fleet/risk-trends");
+export const getAlerts = () => api.get("/alerts");
+export const ackAlert = (alert_id) => api.post("/alerts/acknowledge", { alert_id });
+export const createTenant = (name, plan_type) => api.post("/tenants", { name, plan_type });
+export const listTenants = () => api.get("/tenants");
 
 export default api;

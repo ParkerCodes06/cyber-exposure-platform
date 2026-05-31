@@ -24,6 +24,16 @@ def init_db():
         cursor = conn.cursor()
 
         cursor.execute("""
+            CREATE TABLE IF NOT EXISTS tenants (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                api_key TEXT UNIQUE NOT NULL,
+                plan_type TEXT DEFAULT 'starter',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS assets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 hostname TEXT NOT NULL,
@@ -44,6 +54,21 @@ def init_db():
         except Exception:
             pass
 
+        try:
+            cursor.execute("ALTER TABLE assets ADD COLUMN tenant_id TEXT DEFAULT 'default'")
+        except Exception:
+            pass
+
+        try:
+            cursor.execute("ALTER TABLE assets ADD COLUMN risk_score REAL DEFAULT 0")
+        except Exception:
+            pass
+
+        try:
+            cursor.execute("ALTER TABLE assets ADD COLUMN risk_level TEXT DEFAULT 'LOW'")
+        except Exception:
+            pass
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS scan_history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,6 +80,30 @@ def init_db():
                 risk_level TEXT DEFAULT 'LOW'
             )
         """)
+
+        try:
+            cursor.execute("ALTER TABLE scan_history ADD COLUMN tenant_id TEXT DEFAULT 'default'")
+        except Exception:
+            pass
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS alerts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tenant_id TEXT DEFAULT 'default',
+                hostname TEXT NOT NULL,
+                alert_type TEXT NOT NULL,
+                message TEXT NOT NULL,
+                severity TEXT DEFAULT 'INFO',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                acknowledged INTEGER DEFAULT 0
+            )
+        """)
+
+        default_key = "default-tenant-key"
+        cursor.execute("""
+            INSERT OR IGNORE INTO tenants (name, api_key, plan_type)
+            VALUES ('default', ?, 'starter')
+        """, (default_key,))
 
         conn.commit()
         conn.close()

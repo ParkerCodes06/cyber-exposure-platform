@@ -1,8 +1,9 @@
 import json
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from backend.app.db.database import get_connection
 from backend.app.core.cve_engine import check_vulnerabilities
 from backend.app.core.risk_engine import calculate_risk
+from backend.app.core.auth import get_tenant
 from backend.app.utils.logger import get_logger
 
 logger = get_logger("api.dashboard")
@@ -10,12 +11,14 @@ router = APIRouter()
 
 
 @router.get("/dashboard/summary")
-def dashboard_summary():
+def dashboard_summary(tenant: dict = Depends(get_tenant)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM assets")
+        tenant_id = tenant["name"]
+
+        cursor.execute("SELECT * FROM assets WHERE tenant_id = ?", (tenant_id,))
         rows = cursor.fetchall()
         conn.close()
 
@@ -42,7 +45,7 @@ def dashboard_summary():
 
         avg_score = round(overall_score / max(total_assets, 1), 2)
 
-        logger.info(f"Dashboard summary: {total_assets} assets, avg score {avg_score}")
+        logger.info(f"Dashboard summary: {total_assets} assets, avg score {avg_score} (tenant={tenant_id})")
         return {
             "total_assets": total_assets,
             "critical_risks": critical_risks,
@@ -55,12 +58,14 @@ def dashboard_summary():
 
 
 @router.get("/dashboard/assets")
-def dashboard_assets():
+def dashboard_assets(tenant: dict = Depends(get_tenant)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM assets")
+        tenant_id = tenant["name"]
+
+        cursor.execute("SELECT * FROM assets WHERE tenant_id = ?", (tenant_id,))
         rows = cursor.fetchall()
         conn.close()
 
@@ -79,7 +84,7 @@ def dashboard_assets():
 
         assets.sort(key=lambda x: x["score"], reverse=True)
 
-        logger.info(f"Dashboard assets returned: {len(assets)}")
+        logger.info(f"Dashboard assets returned: {len(assets)} (tenant={tenant_id})")
         return assets
     except Exception as e:
         logger.error(f"Dashboard assets failed: {e}")
@@ -87,12 +92,14 @@ def dashboard_assets():
 
 
 @router.get("/dashboard/top-risks")
-def dashboard_top_risks():
+def dashboard_top_risks(tenant: dict = Depends(get_tenant)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM assets")
+        tenant_id = tenant["name"]
+
+        cursor.execute("SELECT * FROM assets WHERE tenant_id = ?", (tenant_id,))
         rows = cursor.fetchall()
         conn.close()
 
@@ -111,7 +118,7 @@ def dashboard_top_risks():
 
         top_risks.sort(key=lambda x: x["hostname"])
 
-        logger.info(f"Top risks returned: {len(top_risks)}")
+        logger.info(f"Top risks returned: {len(top_risks)} (tenant={tenant_id})")
         return top_risks
     except Exception as e:
         logger.error(f"Dashboard top-risks failed: {e}")

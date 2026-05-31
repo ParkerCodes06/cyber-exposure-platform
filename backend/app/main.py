@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.db.database import init_db
-from backend.app.api import assets, scan, report, dashboard, fleet
+from backend.app.api import assets, scan, report, dashboard, fleet, tenants, alerts
 from backend.app.utils.logger import get_logger
 
 logger = get_logger("main")
@@ -24,6 +24,8 @@ app.include_router(scan.router)
 app.include_router(report.router)
 app.include_router(dashboard.router)
 app.include_router(fleet.router)
+app.include_router(tenants.router)
+app.include_router(alerts.router)
 
 
 @app.on_event("startup")

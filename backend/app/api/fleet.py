@@ -1,8 +1,9 @@
 import json
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from backend.app.db.database import get_connection
 from backend.app.core.cve_engine import check_vulnerabilities
 from backend.app.core.risk_engine import calculate_risk
+from backend.app.core.auth import get_tenant
 from backend.app.utils.logger import get_logger
 
 logger = get_logger("api.fleet")
@@ -10,12 +11,14 @@ router = APIRouter()
 
 
 @router.get("/fleet/summary")
-def fleet_summary():
+def fleet_summary(tenant: dict = Depends(get_tenant)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM assets")
+        tenant_id = tenant["name"]
+
+        cursor.execute("SELECT * FROM assets WHERE tenant_id = ?", (tenant_id,))
         rows = cursor.fetchall()
 
         total_assets = len(rows)
@@ -52,7 +55,7 @@ def fleet_summary():
 
         conn.close()
 
-        logger.info(f"Fleet summary: {total_assets} assets, avg risk {avg_risk}")
+        logger.info(f"Fleet summary: {total_assets} assets, avg risk {avg_risk} (tenant={tenant_id})")
         return {
             "total_assets": total_assets,
             "critical_assets": critical_assets,
@@ -65,12 +68,14 @@ def fleet_summary():
 
 
 @router.get("/fleet/assets")
-def fleet_assets():
+def fleet_assets(tenant: dict = Depends(get_tenant)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM assets")
+        tenant_id = tenant["name"]
+
+        cursor.execute("SELECT * FROM assets WHERE tenant_id = ?", (tenant_id,))
         rows = cursor.fetchall()
 
         assets = []
@@ -94,7 +99,7 @@ def fleet_assets():
 
         conn.close()
 
-        logger.info(f"Fleet assets returned: {len(assets)}")
+        logger.info(f"Fleet assets returned: {len(assets)} (tenant={tenant_id})")
         return assets
     except Exception as e:
         logger.error(f"Fleet assets failed: {e}")
@@ -102,16 +107,19 @@ def fleet_assets():
 
 
 @router.get("/fleet/risk-trends")
-def fleet_risk_trends():
+def fleet_risk_trends(tenant: dict = Depends(get_tenant)):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
+        tenant_id = tenant["name"]
+
         cursor.execute("""
             SELECT hostname, timestamp, risk_score, risk_level
             FROM scan_history
+            WHERE tenant_id = ?
             ORDER BY timestamp ASC
-        """)
+        """, (tenant_id,))
         rows = cursor.fetchall()
         conn.close()
 
@@ -131,7 +139,7 @@ def fleet_risk_trends():
             for hostname, entries in trends.items()
         ]
 
-        logger.info(f"Risk trends returned for {len(result)} hosts")
+        logger.info(f"Risk trends returned for {len(result)} hosts (tenant={tenant_id})")
         return result
     except Exception as e:
         logger.error(f"Risk trends failed: {e}")

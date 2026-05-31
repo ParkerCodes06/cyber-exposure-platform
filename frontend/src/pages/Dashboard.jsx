@@ -5,7 +5,7 @@ import {
 } from "recharts";
 import {
   getDashboardSummary, getDashboardAssets, getDashboardTopRisks,
-  getFleetSummary, getFleetAssets, getFleetRiskTrends
+  getFleetSummary, getFleetAssets, getFleetRiskTrends, getAlerts
 } from "../services/api";
 
 const RISK_COLORS = {
@@ -24,16 +24,18 @@ export default function Dashboard() {
   const [fleetSum, setFleetSum] = useState(null);
   const [fleetAssets, setFleetAssets] = useState([]);
   const [riskTrends, setRiskTrends] = useState([]);
+  const [alerts, setAlerts] = useState([]);
 
   const fetchData = async () => {
     try {
-      const [sumRes, assetsRes, risksRes, fSumRes, fAssetsRes, trendsRes] = await Promise.all([
+      const [sumRes, assetsRes, risksRes, fSumRes, fAssetsRes, trendsRes, alertsRes] = await Promise.all([
         getDashboardSummary(),
         getDashboardAssets(),
         getDashboardTopRisks(),
         getFleetSummary().catch(() => ({ data: null })),
         getFleetAssets().catch(() => ({ data: [] })),
         getFleetRiskTrends().catch(() => ({ data: [] })),
+        getAlerts().catch(() => ({ data: [] })),
       ]);
       setSummary(sumRes.data);
       setAssets(assetsRes.data);
@@ -41,6 +43,7 @@ export default function Dashboard() {
       setFleetSum(fSumRes.data);
       setFleetAssets(fAssetsRes.data);
       setRiskTrends(trendsRes.data);
+      setAlerts(alertsRes.data);
     } catch (err) {
       console.error("Failed to fetch dashboard data:", err);
     }
@@ -284,6 +287,55 @@ export default function Dashboard() {
           </table>
         </div>
       </div>
+
+      {alerts.length > 0 && (
+        <div className="bg-gray-800 rounded-lg border border-gray-700">
+          <div className="p-6 border-b border-gray-700">
+            <h3 className="text-lg font-semibold text-white">Recent Alerts</h3>
+          </div>
+          <div className="divide-y divide-gray-700/50">
+            {alerts.slice(0, 10).map((alert) => (
+              <div key={alert.id} className="px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{
+                      backgroundColor:
+                        alert.severity === "CRITICAL" ? "#dc2626" :
+                        alert.severity === "HIGH" ? "#ea580c" :
+                        alert.severity === "MEDIUM" ? "#ca8a04" : "#16a34a"
+                    }}
+                  />
+                  <div>
+                    <p className="text-sm text-white font-medium">{alert.message}</p>
+                    <p className="text-xs text-gray-400">
+                      {alert.hostname} &middot; {alert.alert_type} &middot; {new Date(alert.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className="px-2 py-1 rounded text-xs font-semibold text-white"
+                  style={{
+                    backgroundColor:
+                      alert.severity === "CRITICAL" ? "#dc2626" :
+                      alert.severity === "HIGH" ? "#ea580c" :
+                      alert.severity === "MEDIUM" ? "#ca8a04" : "#16a34a"
+                  }}
+                >
+                  {alert.severity}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {alerts.length === 0 && (
+        <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-white mb-2">Alerts</h3>
+          <p className="text-gray-400 text-sm">No alerts triggered yet. Alerts appear when risk levels change or critical findings are detected.</p>
+        </div>
+      )}
     </div>
   );
 }
