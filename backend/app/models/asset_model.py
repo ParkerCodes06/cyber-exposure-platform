@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 
 class AssetIngest(BaseModel):
@@ -7,3 +7,4 @@ class AssetIngest(BaseModel):
     os: str = Field(..., min_length=1, max_length=100)
     ip_address: str = Field(..., min_length=1, max_length=45)
     open_ports: List[int] = Field(default_factory=list)
+    agent_id: Optional[str] = Field(default=None, max_length=255)

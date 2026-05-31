@@ -2,8 +2,10 @@ import platform
 import socket
 import requests
 import psutil
+from datetime import datetime
 
-BACKEND_URL = "http://127.0.0.1:8000/ingest"
+BACKEND_URL = "https://cyber-exposure-platform.onrender.com/ingest"
+AGENT_VERSION = "1.0.0"
 
 
 def get_local_ip():
@@ -45,7 +47,10 @@ def build_payload():
         "hostname": socket.gethostname(),
         "os": platform.system() + " " + platform.release(),
         "ip_address": get_local_ip(),
-        "open_ports": collect_ports()
+        "open_ports": collect_ports(),
+        "agent_id": socket.gethostname(),
+        "timestamp": datetime.utcnow().isoformat(),
+        "version": AGENT_VERSION
     }
 
 
@@ -61,8 +66,10 @@ if __name__ == "__main__":
     print("[*] Collecting system information...")
     data = build_payload()
     print(f"[*] Hostname: {data['hostname']}")
+    print(f"[*] Agent ID: {data['agent_id']}")
     print(f"[*] OS: {data['os']}")
     print(f"[*] IP: {data['ip_address']}")
     print(f"[*] Open ports: {len(data['open_ports'])} found")
+    print(f"[*] Version: {data['version']}")
     print(f"[*] Sending to {BACKEND_URL}...")
     send(data)

@@ -18,5 +18,8 @@ export const getDashboardTopRisks = () => api.get("/dashboard/top-risks");
 export const getScan = (hostname) => api.get(`/scan/${hostname}`);
 export const getAssets = () => api.get("/assets");
 export const getHealth = () => api.get("/health");
+export const getFleetSummary = () => api.get("/fleet/summary");
+export const getFleetAssets = () => api.get("/fleet/assets");
+export const getFleetRiskTrends = () => api.get("/fleet/risk-trends");
 
 export default api;

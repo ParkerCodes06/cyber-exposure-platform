@@ -34,6 +34,28 @@ def init_db():
             )
         """)
 
+        try:
+            cursor.execute("ALTER TABLE assets ADD COLUMN agent_id TEXT")
+        except Exception:
+            pass
+
+        try:
+            cursor.execute("ALTER TABLE assets ADD COLUMN last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+        except Exception:
+            pass
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS scan_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                hostname TEXT NOT NULL,
+                agent_id TEXT,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                risk_score REAL DEFAULT 0,
+                vulnerability_count INTEGER DEFAULT 0,
+                risk_level TEXT DEFAULT 'LOW'
+            )
+        """)
+
         conn.commit()
         conn.close()
         logger.info("Database initialized successfully")
