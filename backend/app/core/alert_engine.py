@@ -27,6 +27,13 @@ def check_and_alert(tenant_id, hostname, risk_report, vulnerabilities, previous_
                 f"{hostname} is now CRITICAL risk (score: {current_score})",
                 "CRITICAL"
             )
+        elif current_level == "HIGH":
+            _insert_alert(
+                conn, tenant_id, hostname,
+                "HIGH_RISK",
+                f"{hostname} is HIGH risk (score: {current_score})",
+                "HIGH"
+            )
 
         if previous_score > 0 and current_score > previous_score * 1.5:
             _insert_alert(

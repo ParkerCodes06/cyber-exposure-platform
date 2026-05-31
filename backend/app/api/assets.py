@@ -35,8 +35,7 @@ def ingest_asset(asset: AssetIngest, tenant: dict = Depends(get_tenant_optional)
         if existing:
             cursor.execute("""
                 UPDATE assets
-                SET os = ?, ip_address = ?, open_ports = ?, agent_id = ?, last_seen = ?,
-                    risk_score = ?, risk_level = ?
+                SET os = ?, ip_address = ?, open_ports = ?, agent_id = ?, last_seen = ?
                 WHERE hostname = ? AND tenant_id = ?
             """, (
                 asset.os,
@@ -44,8 +43,6 @@ def ingest_asset(asset: AssetIngest, tenant: dict = Depends(get_tenant_optional)
                 json.dumps(asset.open_ports),
                 agent_id,
                 now,
-                risk_report["total_risk_score"],
-                risk_report["risk_level"],
                 asset.hostname,
                 tenant_id
             ))
@@ -54,7 +51,7 @@ def ingest_asset(asset: AssetIngest, tenant: dict = Depends(get_tenant_optional)
             cursor.execute("""
                 INSERT INTO assets (hostname, os, ip_address, open_ports, agent_id, last_seen,
                     tenant_id, risk_score, risk_level)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'LOW')
             """, (
                 asset.hostname,
                 asset.os,
@@ -62,9 +59,7 @@ def ingest_asset(asset: AssetIngest, tenant: dict = Depends(get_tenant_optional)
                 json.dumps(asset.open_ports),
                 agent_id,
                 now,
-                tenant_id,
-                risk_report["total_risk_score"],
-                risk_report["risk_level"]
+                tenant_id
             ))
             logger.info(f"Asset ingested: {asset.hostname} (tenant={tenant_id})")
 
