@@ -58,7 +58,8 @@ def startup():
     logger.info("Application started")
 
 
-FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")
+FRONTEND_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
+logger.info(f"Frontend dir: {FRONTEND_DIR} (exists: {os.path.isdir(FRONTEND_DIR)})")
 
 if os.path.isdir(FRONTEND_DIR):
     app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIR, "assets")), name="static")
