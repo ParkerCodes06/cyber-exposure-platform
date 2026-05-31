@@ -183,9 +183,12 @@ def refresh(request: Request, response: Response):
 
 @router.post("/auth/logout")
 def logout(response: Response, request: Request):
-    ip = request.client.host if request.client else "unknown"
-    ua = request.headers.get("user-agent", "")
-    log_auth_event("LOGOUT", ip=ip, ua=ua, success=True)
+    try:
+        ip = request.client.host if request.client else "unknown"
+        ua = request.headers.get("user-agent", "")
+        log_auth_event("LOGOUT", ip=ip, ua=ua, success=True)
+    except Exception:
+        pass
 
     response.delete_cookie("access_token", path="/")
     response.delete_cookie("refresh_token", path="/auth/refresh")
