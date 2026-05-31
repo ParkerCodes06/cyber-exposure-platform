@@ -1,0 +1,16 @@
+[
+  {
+    "cve_id": "CVE-2024-0001",
+    "software": "openssl",
+    "affected_version": "1.1.1",
+    "description": "OpenSSL vulnerability allowing MITM attacks",
+    "severity": "HIGH"
+  },
+  {
+    "cve_id": "CVE-2023-0002",
+    "software": "apache",
+    "affected_version": "2.4.49",
+    "description": "Path traversal vulnerability in Apache HTTP Server",
+    "severity": "CRITICAL"
+  }
+]
