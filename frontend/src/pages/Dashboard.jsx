@@ -25,27 +25,36 @@ export default function Dashboard() {
   const [fleetAssets, setFleetAssets] = useState([]);
   const [riskTrends, setRiskTrends] = useState([]);
   const [alerts, setAlerts] = useState([]);
+  const [error, setError] = useState(null);
 
   const fetchData = async () => {
     try {
-      const [sumRes, assetsRes, risksRes, fSumRes, fAssetsRes, trendsRes, alertsRes] = await Promise.all([
+      setError(null);
+      const results = await Promise.allSettled([
         getDashboardSummary(),
         getDashboardAssets(),
         getDashboardTopRisks(),
-        getFleetSummary().catch(() => ({ data: null })),
-        getFleetAssets().catch(() => ({ data: [] })),
-        getFleetRiskTrends().catch(() => ({ data: [] })),
-        getAlerts().catch(() => ({ data: [] })),
+        getFleetSummary(),
+        getFleetAssets(),
+        getFleetRiskTrends(),
+        getAlerts(),
       ]);
-      setSummary(sumRes.data);
-      setAssets(assetsRes.data);
-      setTopRisks(risksRes.data);
-      setFleetSum(fSumRes.data);
-      setFleetAssets(fAssetsRes.data);
-      setRiskTrends(trendsRes.data);
-      setAlerts(alertsRes.data);
+
+      if (results[0].status === "fulfilled") setSummary(results[0].value.data);
+      if (results[1].status === "fulfilled") setAssets(results[1].value.data);
+      if (results[2].status === "fulfilled") setTopRisks(results[2].value.data);
+      if (results[3].status === "fulfilled") setFleetSum(results[3].value.data);
+      if (results[4].status === "fulfilled") setFleetAssets(results[4].value.data);
+      if (results[5].status === "fulfilled") setRiskTrends(results[5].value.data);
+      if (results[6].status === "fulfilled") setAlerts(results[6].value.data);
+
+      const failed = results.filter((r) => r.status === "rejected");
+      if (failed.length > 0 && results.every((r) => r.status === "rejected")) {
+        setError("Unable to connect to the server. Please check your API key in Settings.");
+      }
     } catch (err) {
       console.error("Failed to fetch dashboard data:", err);
+      setError("Failed to load dashboard data.");
     }
   };
 
@@ -67,6 +76,20 @@ export default function Dashboard() {
     name: level,
     count: riskCounts[level] || 0,
   }));
+
+  if (error && !summary) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 text-center gap-4">
+        <p className="text-red-400 text-lg">{error}</p>
+        <button
+          onClick={fetchData}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white text-sm font-medium transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   if (!summary) {
     return (
