@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/api";
 
 export default function Login() {
@@ -83,6 +83,12 @@ export default function Login() {
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          <Link to="/" className="text-gray-500 hover:text-gray-300 text-sm transition-colors">
+            Skip to Dashboard &rarr;
+          </Link>
+        </div>
 
         <p className="text-center text-gray-500 text-xs mt-4">
           Cyber Exposure Platform v2.0

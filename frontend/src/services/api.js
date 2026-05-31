@@ -14,9 +14,7 @@ api.interceptors.response.use(
         await axios.post("/auth/refresh", null, { withCredentials: true });
         return api(err.config);
       } catch {
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login";
-        }
+        // Token expired, continue without auth — default tenant fallback
       }
     }
     return Promise.reject(err);
@@ -48,7 +46,7 @@ export const logout = async () => {
     // ignore
   }
   localStorage.removeItem("user");
-  window.location.href = "/login";
+  window.location.href = "/";
 };
 
 export const getUser = () => {
