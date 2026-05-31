@@ -1,6 +1,7 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from backend.app.db.database import init_db
-from backend.app.api import assets, scan, report
+from backend.app.api import assets, scan, report, dashboard
 from backend.app.utils.logger import get_logger
 
 logger = get_logger("main")
@@ -10,9 +11,18 @@ app = FastAPI(
     version="0.2"
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(assets.router)
 app.include_router(scan.router)
 app.include_router(report.router)
+app.include_router(dashboard.router)
 
 
 @app.on_event("startup")
