@@ -1,4 +1,5 @@
 import json
+import os
 from fastapi import APIRouter, HTTPException, Header
 from backend.app.db.database import get_connection
 from backend.app.models.asset_model import AssetIngest
@@ -7,7 +8,7 @@ from backend.app.utils.logger import get_logger
 logger = get_logger("api.assets")
 router = APIRouter()
 
-API_KEY = "secret-key-change-me"
+API_KEY = os.getenv("API_KEY", "secret-key-change-me")
 
 
 def verify_key(x_api_key: str = Header(None)):
