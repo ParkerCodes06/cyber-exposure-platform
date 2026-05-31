@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const BASE_URL = window.location.hostname === "localhost"
-  ? "http://127.0.0.1:8000"
+  ? "https://cyber-exposure-platform.onrender.com"
   : "";
 
 const api = axios.create({
