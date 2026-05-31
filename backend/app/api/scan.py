@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 from fastapi import APIRouter, HTTPException, Header
 from backend.app.db.database import get_connection
 from backend.app.core.cve_engine import check_vulnerabilities
@@ -30,13 +31,14 @@ def scan_host(hostname: str):
         """, (hostname,))
 
         row = cursor.fetchone()
-        conn.close()
 
         if not row:
+            conn.close()
             return {"error": "Host not found"}
 
         os_value = row["os"]
         open_ports = json.loads(row["open_ports"] or "[]")
+        agent_id = row["agent_id"] or hostname
 
         vulnerabilities = check_vulnerabilities(os_value=os_value)
 
@@ -54,6 +56,26 @@ def scan_host(hostname: str):
             risk_report,
             attack_path
         )
+
+        now = datetime.utcnow().isoformat()
+        cursor.execute("""
+            INSERT INTO scan_history (hostname, agent_id, timestamp, risk_score, vulnerability_count, risk_level)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            hostname,
+            agent_id,
+            now,
+            risk_report["total_risk_score"],
+            len(vulnerabilities),
+            risk_report["risk_level"]
+        ))
+
+        cursor.execute("""
+            UPDATE assets SET last_seen = ? WHERE hostname = ?
+        """, (now, hostname))
+
+        conn.commit()
+        conn.close()
 
         logger.info(f"Scan completed for {hostname}")
         return {
