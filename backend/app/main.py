@@ -61,15 +61,9 @@ def startup():
 FRONTEND_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
 logger.info(f"Frontend dir: {FRONTEND_DIR} (exists: {os.path.isdir(FRONTEND_DIR)})")
 
-if os.path.isdir(FRONTEND_DIR):
-    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIR, "assets")), name="static")
-
-    @app.get("/{full_path:path}")
-    def serve_spa(full_path: str):
-        file_path = os.path.join(FRONTEND_DIR, full_path)
-        if os.path.isfile(file_path):
-            return FileResponse(file_path)
-        return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+ASSETS_DIR = os.path.join(FRONTEND_DIR, "assets")
+if os.path.isdir(ASSETS_DIR):
+    app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="static")
 
 
 @app.get("/health")
@@ -77,3 +71,15 @@ def health():
     return {
         "status": "healthy"
     }
+
+
+if os.path.isdir(FRONTEND_DIR):
+
+    @app.get("/{full_path:path}")
+    def serve_spa(full_path: str):
+        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi"):
+            return {"error": "not found"}
+        file_path = os.path.join(FRONTEND_DIR, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
