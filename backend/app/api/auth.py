@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, HTTPException, Depends, Response, Request
 from pydantic import BaseModel, Field
 from backend.app.core.auth import (
@@ -14,7 +15,8 @@ logger = get_logger("api.auth")
 router = APIRouter()
 
 COOKIE_SAMESITE = "lax"
-COOKIE_SECURE = True
+IS_PROD = os.getenv("API_ENV") == "production"
+COOKIE_SECURE = IS_PROD
 ACCESS_MAX_AGE = 15 * 60
 REFRESH_MAX_AGE = 7 * 24 * 60 * 60
 
