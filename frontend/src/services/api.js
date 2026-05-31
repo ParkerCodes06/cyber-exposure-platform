@@ -1,7 +1,11 @@
 import axios from "axios";
 
+const BASE_URL = window.location.hostname === "localhost"
+  ? "http://127.0.0.1:8000"
+  : "";
+
 const api = axios.create({
-  baseURL: "",
+  baseURL: BASE_URL,
   withCredentials: true,
 });
 
@@ -11,7 +15,7 @@ api.interceptors.response.use(
     if (err.response?.status === 401 && err.config && !err.config._retry) {
       err.config._retry = true;
       try {
-        await axios.post("/auth/refresh", null, { withCredentials: true });
+        await axios.post(`${BASE_URL}/auth/refresh`, null, { withCredentials: true });
         return api(err.config);
       } catch {
         // Token expired, continue without auth — default tenant fallback
@@ -22,13 +26,13 @@ api.interceptors.response.use(
 );
 
 export const login = async (email, password) => {
-  const res = await axios.post("/auth/login", { email, password }, { withCredentials: true });
+  const res = await axios.post(`${BASE_URL}/auth/login`, { email, password }, { withCredentials: true });
   localStorage.setItem("user", JSON.stringify(res.data.user));
   return res.data;
 };
 
 export const register = async (email, password, tenant_id, role = "viewer") => {
-  const res = await axios.post("/auth/register", {
+  const res = await axios.post(`${BASE_URL}/auth/register`, {
     email,
     password,
     tenant_id,
@@ -41,7 +45,7 @@ export const getMe = () => api.get("/auth/me");
 
 export const logout = async () => {
   try {
-    await axios.post("/auth/logout", null, { withCredentials: true });
+    await axios.post(`${BASE_URL}/auth/logout`, null, { withCredentials: true });
   } catch {
     // ignore
   }
