@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: cyber-exposure-platform
+    runtime: docker
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: API_ENV
+        value: production
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: DB_PATH
+        value: assets.db
