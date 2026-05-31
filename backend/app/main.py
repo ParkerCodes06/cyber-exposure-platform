@@ -69,17 +69,22 @@ if os.path.isdir(ASSETS_DIR):
 @app.get("/health")
 def health():
     return {
-        "status": "healthy"
+        "status": "healthy",
+        "frontend_dir": FRONTEND_DIR,
+        "frontend_exists": os.path.isdir(FRONTEND_DIR)
     }
 
 
-if os.path.isdir(FRONTEND_DIR):
+@app.get("/{full_path:path}")
+def serve_spa(full_path: str):
+    if full_path.startswith("health") or full_path.startswith("docs") or full_path.startswith("openapi") or full_path.startswith("redoc"):
+        return None
 
-    @app.get("/{full_path:path}")
-    def serve_spa(full_path: str):
-        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi"):
-            return {"error": "not found"}
-        file_path = os.path.join(FRONTEND_DIR, full_path)
-        if os.path.isfile(file_path):
-            return FileResponse(file_path)
-        return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+    if os.path.isdir(FRONTEND_DIR):
+        if full_path and os.path.isfile(os.path.join(FRONTEND_DIR, full_path)):
+            return FileResponse(os.path.join(FRONTEND_DIR, full_path))
+        index_path = os.path.join(FRONTEND_DIR, "index.html")
+        if os.path.isfile(index_path):
+            return FileResponse(index_path)
+
+    return {"message": "Cyber Exposure Platform Running"}
